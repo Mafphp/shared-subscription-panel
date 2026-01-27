@@ -44,6 +44,31 @@ function applyNameToLink(link, name) {
   return clean + "#" + encodeURIComponent(name);
 }
 
+function updatePsInLink(link, name) {
+  if (!isValidLink(link)) return applyNameToLink(link, name);
+  const protocol = link.startsWith('vmess://') ? 'vmess://' : 'vless://';
+  let base64Part = link.substring(protocol.length);
+  const hashIndex = base64Part.indexOf('#');
+  if (hashIndex > -1) {
+    base64Part = base64Part.substring(0, hashIndex);
+  }
+  try {
+    const decoded = Buffer.from(base64Part, 'base64').toString('utf8');
+    const config = JSON.parse(decoded);
+    if (config && typeof config === 'object') {
+      config.ps = name;
+      const updated = JSON.stringify(config);
+      const newBase64 = Buffer.from(updated).toString('base64');
+      return protocol + newBase64;
+    } else {
+      throw new Error('Invalid config');
+    }
+  } catch (err) {
+    console.error('Failed to update ps:', err);
+    return applyNameToLink(link, name);
+  }
+}
+
 module.exports = {
   load,
   save,
@@ -51,5 +76,6 @@ module.exports = {
   today,
   normalizeName,
   uniqueName,
-  applyNameToLink
+  applyNameToLink,
+  updatePsInLink
 };

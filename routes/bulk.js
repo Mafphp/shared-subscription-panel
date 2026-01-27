@@ -1,7 +1,7 @@
 const router = require("express").Router();
 const {
   load, save, isValidLink, today,
-  normalizeName, uniqueName, applyNameToLink
+  normalizeName, uniqueName, applyNameToLink, updatePsInLink
 } = require("../services/store");
 
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN;
@@ -23,7 +23,7 @@ router.post("/bulk", (req, res) => {
     if (!isValidLink(link)) return;
 
     let name = uniqueName(baseName, data);
-    link = applyNameToLink(link, name);
+    link = updatePsInLink(link, name);
     data.push({ id: Date.now() + Math.random(), name, link });
   });
 
