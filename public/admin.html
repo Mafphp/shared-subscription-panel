@@ -61,12 +61,17 @@
         width: 100%;
         margin-top: 10px;
       }
-      button:hover {
+      button:hover:not(:disabled) {
         background: linear-gradient(135deg, #1d4ed8, #1e40af);
         transform: translateY(-1px);
       }
-      button:active {
+      button:active:not(:disabled) {
         transform: translateY(0);
+      }
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
       }
       .action-btn {
         width: auto;
@@ -75,34 +80,32 @@
         margin: 2px;
         background: #059669;
       }
-      .action-btn:hover {
+      .action-btn:hover:not(:disabled) {
         background: #047857;
       }
       .delete-btn {
         background: #dc2626;
       }
-      .delete-btn:hover {
+      .delete-btn:hover:not(:disabled) {
         background: #b91c1c;
-      }
-      .up-btn {
-        background: #eab308;
-        color: #000;
-      }
-      .up-btn:hover {
-        background: #ca8a04;
-      }
-      .down-btn {
-        background: #06b6d4;
-        color: #000;
-      }
-      .down-btn:hover {
-        background: #0891b2;
       }
       .edit-btn {
         background: #8b5cf6;
       }
-      .edit-btn:hover {
+      .edit-btn:hover:not(:disabled) {
         background: #7c3aed;
+      }
+      .save-btn-row {
+        background: #10b981;
+      }
+      .save-btn-row:hover:not(:disabled) {
+        background: #059669;
+      }
+      .cancel-btn-row {
+        background: #6b7280;
+      }
+      .cancel-btn-row:hover:not(:disabled) {
+        background: #4b5563;
       }
       .bulk-delete-btn {
         background: #dc2626;
@@ -110,8 +113,12 @@
         padding: 10px 20px;
         margin: 10px 0;
       }
-      .bulk-delete-btn:hover {
+      .bulk-delete-btn:hover:not(:disabled) {
         background: #b91c1c;
+      }
+      .bulk-delete-btn:disabled {
+        background: #6b7280;
+        cursor: not-allowed;
       }
       .login-card {
         max-width: 400px;
@@ -140,8 +147,17 @@
       th input[type="checkbox"] {
         margin-right: 10px;
       }
+      tr {
+        transition: background 0.2s;
+      }
+      tr.editing {
+        background: rgba(139, 92, 246, 0.1);
+      }
       tr:nth-child(even) {
         background: rgba(30, 41, 59, 0.3);
+      }
+      tr.editing:nth-child(even) {
+        background: rgba(139, 92, 246, 0.2);
       }
       td {
         padding: 12px;
@@ -149,16 +165,56 @@
         word-break: break-all;
         max-width: 300px;
       }
-      td[contenteditable] {
+      td.readonly {
+        background: rgba(30, 41, 59, 0.5);
+        cursor: default;
+      }
+      td.editable {
         background: rgba(37, 99, 235, 0.1);
         cursor: text;
-        border-radius: 4px;
-        padding: 8px;
-        transition: background 0.2s;
       }
-      td[contenteditable]:focus {
+      td.editable:focus-within {
         background: rgba(37, 99, 235, 0.2);
         outline: 2px solid #2563eb;
+      }
+      /* Checkbox Styling */
+      input[type="checkbox"] {
+        appearance: none;
+        width: 18px;
+        height: 18px;
+        border: 2px solid #334155;
+        border-radius: 4px;
+        background: #020617;
+        cursor: pointer;
+        position: relative;
+        margin: 0;
+        vertical-align: middle;
+      }
+      input[type="checkbox"]:checked {
+        background: #10b981;
+        border-color: #10b981;
+      }
+      input[type="checkbox"]:checked::after {
+        content: '✓';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-size: 12px;
+        font-weight: bold;
+      }
+      input[type="checkbox"]:hover {
+        border-color: #475569;
+        box-shadow: 0 0 0 3px rgba(71, 85, 105, 0.2);
+      }
+      input[type="checkbox"]:focus {
+        outline: 2px solid #2563eb;
+        outline-offset: 2px;
+      }
+      th input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
       }
       .error, .success {
         margin-top: 15px;
@@ -182,56 +238,6 @@
         height: 1px;
         background: linear-gradient(to right, transparent, #334155, transparent);
         margin: 25px 0;
-      }
-      #editModal {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.5);
-        z-index: 1000;
-      }
-      .modal-content {
-        background: #020617;
-        margin: 10% auto;
-        padding: 20px;
-        border-radius: 10px;
-        max-width: 500px;
-        color: #e5e7eb;
-        border: 1px solid #334155;
-      }
-      .modal-content label {
-        display: block;
-        margin-top: 15px;
-        margin-bottom: 5px;
-        font-weight: 500;
-        color: #94a3b8;
-      }
-      .modal-content input, .modal-content textarea {
-        width: 100%;
-        padding: 10px;
-        border-radius: 5px;
-        border: 1px solid #334155;
-        background: #020617;
-        color: #e5e7eb;
-        box-sizing: border-box;
-      }
-      .modal-buttons {
-        text-align: right;
-        margin-top: 20px;
-      }
-      .modal-buttons button {
-        width: auto;
-        margin-left: 10px;
-        padding: 10px 20px;
-      }
-      .cancel-btn {
-        background: #6b7280;
-      }
-      .save-btn {
-        background: #10b981;
       }
       @media (max-width: 768px) {
         .card { padding: 20px; }
@@ -267,8 +273,7 @@
 
       <hr />
       <div>
-        <label><input type="checkbox" id="selectAll" onclick="toggleSelectAll()" /> Select All</label>
-        <button class="bulk-delete-btn" onclick="deleteSelected()">Delete Selected</button>
+        <button class="bulk-delete-btn" id="deleteBtn" onclick="deleteSelected()" title="No records selected">Delete Selected</button>
       </div>
       <table id="tbl">
         <thead>
@@ -278,23 +283,6 @@
 
       <br />
       <button onclick="loadNodes()">Load/Refresh Nodes</button>
-
-      <!-- Edit Modal -->
-      <div id="editModal">
-        <div class="modal-content">
-          <h3>Edit Record</h3>
-          <label for="editName">Name:</label>
-          <input id="editName" type="text" />
-          <label for="editPriority">Priority:</label>
-          <input id="editPriority" type="number" min="0" max="999" />
-          <label for="editLink">Link:</label>
-          <textarea id="editLink" rows="4"></textarea>
-          <div class="modal-buttons">
-            <button class="cancel-btn" onclick="closeEditModal()">Cancel</button>
-            <button class="save-btn" onclick="saveEdit()">Save</button>
-          </div>
-        </div>
-      </div>
     </div>
 
     <script>
@@ -379,27 +367,37 @@
         tbl.innerHTML = '<tr><th><input type="checkbox" id="headerCheckbox" onclick="toggleSelectAll()" /></th><th>ID</th><th>Priority</th><th>Created</th><th>Name</th><th>Link</th><th>Actions</th></tr>';
         d.forEach(n=>{
           const createdDate = new Date(n.id).toLocaleString();
+          const rowId = `row-${n.id}`;
           tbl.innerHTML+=`
-          <tr>
-            <td><input type="checkbox" class="rowCheckbox" value="${n.id}" /></td>
-            <td>${n.id}</td>
-            <td contenteditable onblur="editPriority(${n.id},this.innerText)">${n.priority || 0}</td>
-            <td>${createdDate}</td>
-            <td contenteditable onblur="edit(${n.id},this.innerText,null)">${n.name}</td>
-            <td contenteditable onblur="edit(${n.id},null,this.innerText)">${n.link}</td>
+          <tr id="${rowId}" class="row">
+            <td><input type="checkbox" class="rowCheckbox" value="${n.id}" onchange="updateDeleteButton()" /></td>
+            <td class="readonly">${n.id}</td>
+            <td class="readonly editable-priority" data-original="${n.priority || 0}" contenteditable="false">${n.priority || 0}</td>
+            <td class="readonly">${createdDate}</td>
+            <td class="readonly editable-name" data-original="${n.name}" contenteditable="false">${n.name}</td>
+            <td class="readonly editable-link" data-original="${n.link}" contenteditable="false">${n.link}</td>
             <td>
-              <button class="action-btn edit-btn" onclick="openEditModal(${n.id})">Edit</button>
-              <button class="action-btn up-btn" onclick="moveUp(${n.id})">↑</button>
-              <button class="action-btn down-btn" onclick="moveDown(${n.id})">↓</button>
+              <button class="action-btn edit-btn" onclick="toggleEdit(${n.id})">Edit</button>
             </td>
           </tr>`;
         });
+        updateDeleteButton(); // Initial state
       }
 
       function toggleSelectAll() {
         const checkboxes = document.querySelectorAll('.rowCheckbox');
         const checked = document.getElementById('headerCheckbox').checked;
-        checkboxes.forEach(cb => cb.checked = checked);
+        checkboxes.forEach(cb => {
+          cb.checked = checked;
+          updateDeleteButton();
+        });
+      }
+
+      function updateDeleteButton() {
+        const deleteBtn = document.getElementById('deleteBtn');
+        const selected = document.querySelectorAll('.rowCheckbox:checked').length;
+        deleteBtn.disabled = selected === 0;
+        deleteBtn.title = selected === 0 ? 'No records selected' : `Delete ${selected} record(s)`;
       }
 
       async function deleteSelected() {
@@ -431,114 +429,64 @@
           body:JSON.stringify({name:newName.value,text:bulk.value, priority: parseInt(newPriority.value) || 0})
         });
         if(r.ok){
+          const resp = await r.json();
           bulk.value="";
           newName.value = "";
           newPriority.value = "0";
           currentData = []; // Invalidate cache
           loadNodes();
-          showMsg("Links added successfully!", "success");
+          showMsg(`Added ${resp.added || 0} links!`, "success");
         } else {
-          showMsg("Failed to add links", "error");
+          try {
+            const err = await r.json();
+            showMsg(err.error || "Failed to add links", "error");
+          } catch {
+            showMsg("Failed to add links", "error");
+          }
         }
       }
 
-      async function edit(id,name,link){
-        if (!token) return;
-        const p={};
-        if(name!==null)p.name=name;
-        if(link!==null)p.link=link;
-        const r = await fetch('/api/nodes/'+id+'?token='+token,{
-          method:'PUT',
-          headers:{'Content-Type':'application/json'},
-          body:JSON.stringify(p)
-        });
-        if(r.ok){
-          currentData = []; // Invalidate cache
-          showMsg("Updated successfully!", "success");
+      function toggleEdit(id) {
+        const row = document.getElementById(`row-${id}`);
+        const btn = row.querySelector('.edit-btn');
+        if (btn.textContent === 'Edit') {
+          // Enter edit mode
+          row.classList.add('editing');
+          const nameTd = row.querySelector('.editable-name');
+          const priorityTd = row.querySelector('.editable-priority');
+          const linkTd = row.querySelector('.editable-link');
+          nameTd.contentEditable = true;
+          priorityTd.contentEditable = true;
+          linkTd.contentEditable = true;
+          btn.textContent = 'Save';
+          btn.className = 'action-btn save-btn-row';
+          btn.onclick = () => saveRowEdit(id, row);
+          // Add cancel button
+          const actionsTd = row.querySelector('td:last-child');
+          const cancelBtn = document.createElement('button');
+          cancelBtn.textContent = 'Cancel';
+          cancelBtn.className = 'action-btn cancel-btn-row';
+          cancelBtn.onclick = () => cancelEdit(id, row);
+          actionsTd.appendChild(cancelBtn);
         } else {
-          showMsg("Update failed", "error");
+          // Save mode - trigger save
+          saveRowEdit(id, row);
         }
       }
 
-      async function editPriority(id, priority) {
-        if (!token) return;
-        const p = { priority: parseInt(priority) || 0 };
-        const r = await fetch('/api/nodes/'+id+'?token='+token,{
-          method:'PUT',
-          headers:{'Content-Type':'application/json'},
-          body:JSON.stringify(p)
-        });
-        if(r.ok){
-          currentData = []; // Invalidate cache
-          showMsg("Priority updated!", "success");
-        } else {
-          showMsg("Priority update failed", "error");
-        }
-      }
-
-      async function moveUp(id) {
-        const idx = currentData.findIndex(x => x.id == id);
-        if (idx > 0) {
-          [currentData[idx-1], currentData[idx]] = [currentData[idx], currentData[idx-1]];
-          await saveReordered();
-          loadNodes();
-          showMsg("Moved up!", "success");
-        }
-      }
-      async function moveDown(id) {
-        const idx = currentData.findIndex(x => x.id == id);
-        if (idx < currentData.length - 1) {
-          [currentData[idx], currentData[idx+1]] = [currentData[idx+1], currentData[idx]];
-          await saveReordered();
-          loadNodes();
-          showMsg("Moved down!", "success");
-        }
-      }
-      async function saveReordered() {
-        await fetch('/api/nodes/reorder?token='+token, {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({data: currentData})
-        });
-      }
-
-      function showMsg(text, className) {
-        const msg = document.getElementById('msg');
-        msg.innerText = text;
-        msg.className = className;
-        setTimeout(() => { msg.innerText = ""; msg.className = ""; }, 2000);
-      }
-
-      let editingId = null;
-
-      function openEditModal(id) {
-        editingId = id;
-        const node = currentData.find(x => x.id == id);
-        if (!node) {
-          showMsg("Record not found", "error");
+      async function saveRowEdit(id, row) {
+        const nameTd = row.querySelector('.editable-name');
+        const priorityTd = row.querySelector('.editable-priority');
+        const linkTd = row.querySelector('.editable-link');
+        const name = nameTd.textContent.trim();
+        const priority = parseInt(priorityTd.textContent.trim()) || 0;
+        const link = linkTd.textContent.trim();
+        if (!name || !link) {
+          showMsg('Name and Link required', 'error');
           return;
         }
-        document.getElementById('editName').value = node.name || '';
-        document.getElementById('editPriority').value = node.priority || 0;
-        document.getElementById('editLink').value = node.link || '';
-        document.getElementById('editModal').style.display = 'block';
-      }
-
-      function closeEditModal() {
-        editingId = null;
-        document.getElementById('editModal').style.display = 'none';
-      }
-
-      async function saveEdit() {
-        if (!token) return;
-        const name = document.getElementById('editName').value;
-        const priority = document.getElementById('editPriority').value;
-        const link = document.getElementById('editLink').value;
-        const p = {};
-        if (name) p.name = name;
-        if (priority !== '') p.priority = parseInt(priority) || 0;
-        if (link) p.link = link;
-        const r = await fetch('/api/nodes/' + editingId + '?token=' + token, {
+        const p = { name, priority, link };
+        const r = await fetch('/api/nodes/' + id + '?token=' + token, {
           method: 'PUT',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify(p)
@@ -546,19 +494,36 @@
         if (r.ok) {
           currentData = [];
           loadNodes();
-          closeEditModal();
           showMsg("Record updated!", "success");
         } else {
-          showMsg("Save failed", "error");
+          showMsg("Update failed", "error");
         }
       }
 
-      // Close modal on outside click
-      window.onclick = function(event) {
-        const modal = document.getElementById('editModal');
-        if (event.target == modal) {
-          closeEditModal();
-        }
+      function cancelEdit(id, row) {
+        row.classList.remove('editing');
+        const nameTd = row.querySelector('.editable-name');
+        const priorityTd = row.querySelector('.editable-priority');
+        const linkTd = row.querySelector('.editable-link');
+        nameTd.contentEditable = false;
+        priorityTd.contentEditable = false;
+        linkTd.contentEditable = false;
+        nameTd.textContent = nameTd.dataset.original;
+        priorityTd.textContent = priorityTd.dataset.original;
+        linkTd.textContent = linkTd.dataset.original;
+        const btn = row.querySelector('.save-btn-row');
+        btn.textContent = 'Edit';
+        btn.className = 'action-btn edit-btn';
+        btn.onclick = () => toggleEdit(id);
+        const cancelBtn = row.querySelector('.cancel-btn-row');
+        cancelBtn.remove();
+      }
+
+      function showMsg(text, className) {
+        const msg = document.getElementById('msg');
+        msg.innerText = text;
+        msg.className = className;
+        setTimeout(() => { msg.innerText = ""; msg.className = ""; }, 2000);
       }
 
       // Enter key for login
