@@ -52,7 +52,12 @@ function updatePsInLink(link, name) {
   if (hashIndex > -1) {
     base64Part = base64Part.substring(0, hashIndex);
   }
-  // Handle URL-safe base64 for VMess
+  // For vless, always append #name
+  if (protocol === 'vless://') {
+    return applyNameToLink(link, name);
+  }
+  // For vmess, try to update ps in JSON
+  // Handle URL-safe base64
   base64Part = base64Part.replace(/-/g, '+').replace(/_/g, '/');
   while (base64Part.length % 4) {
     base64Part += '=';
@@ -63,13 +68,16 @@ function updatePsInLink(link, name) {
     if (config && typeof config === 'object') {
       config.ps = name;
       const updated = JSON.stringify(config);
-      const newBase64 = Buffer.from(updated).toString('base64').replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+      let newBase64 = Buffer.from(updated).toString('base64');
+      // Make URL-safe for VMess
+      newBase64 = newBase64.replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
       return protocol + newBase64;
     } else {
       throw new Error('Invalid config');
     }
   } catch (err) {
-    console.error('Failed to update ps:', err);
+    console.error('Failed to update ps for vmess:', err);
+    // Fallback to #name for vmess too if parse fails
     return applyNameToLink(link, name);
   }
 }

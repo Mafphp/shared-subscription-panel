@@ -18,18 +18,34 @@ router.post("/bulk", (req, res) => {
 
   if (!baseName) baseName = today();
   baseName = normalizeName(baseName);
+  if (data.find(x => x.name === baseName)) {
+    return res.status(400).json({ error: `Base name "${baseName}" already exists` });
+  }
 
-  text.split(/\r?\n/).forEach(line => {
+  const lines = text.split(/\r?\n/).filter(line => line.trim());
+  if (lines.length === 0) return res.json({ ok: true });
+
+  let added = 0;
+  lines.forEach((line, index) => {
     let link = line.trim();
     if (!isValidLink(link)) return;
 
-    let name = uniqueName(baseName, data);
+    let name = baseName;
+    if (index > 0) {
+      name = `${baseName}-${index}`;
+    }
+    // Check if this name already exists
+    if (data.find(x => x.name === name)) {
+      console.log(`Skipping duplicate name: ${name}`);
+      return;
+    }
     link = updatePsInLink(link, name);
     data.push({ id: Date.now() + Math.random(), name, link, priority });
+    added++;
   });
 
   save(data);
-  res.json({ ok: true });
+  res.json({ ok: true, added });
 });
 
 module.exports = router;
