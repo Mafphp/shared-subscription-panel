@@ -52,13 +52,18 @@ function updatePsInLink(link, name) {
   if (hashIndex > -1) {
     base64Part = base64Part.substring(0, hashIndex);
   }
+  // Handle URL-safe base64 for VMess
+  base64Part = base64Part.replace(/-/g, '+').replace(/_/g, '/');
+  while (base64Part.length % 4) {
+    base64Part += '=';
+  }
   try {
     const decoded = Buffer.from(base64Part, 'base64').toString('utf8');
     const config = JSON.parse(decoded);
     if (config && typeof config === 'object') {
       config.ps = name;
       const updated = JSON.stringify(config);
-      const newBase64 = Buffer.from(updated).toString('base64');
+      const newBase64 = Buffer.from(updated).toString('base64').replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
       return protocol + newBase64;
     } else {
       throw new Error('Invalid config');
