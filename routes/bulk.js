@@ -11,6 +11,7 @@ router.post("/bulk", (req, res) => {
 
   const text = (req.body.text || "").trim();
   let baseName = (req.body.name || "").trim();
+  let priority = parseInt(req.body.priority) || 0;
   if (!text) return res.json({ ok: true });
 
   const data = load();
@@ -24,7 +25,7 @@ router.post("/bulk", (req, res) => {
 
     let name = uniqueName(baseName, data);
     link = updatePsInLink(link, name);
-    data.push({ id: Date.now() + Math.random(), name, link, priority: 0 });
+    data.push({ id: Date.now() + Math.random(), name, link, priority });
   });
 
   save(data);

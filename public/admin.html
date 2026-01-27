@@ -253,21 +253,15 @@
       <button onclick="logout()" style="float:right; background:#dc2626; width:auto; padding:10px;">Logout</button>
       <h2>Admin Panel</h2>
 
-      <label for="newName">Optional Name for New Records</label>
+      <label for="newName">Optional Name for New Records (applies to all lines)</label>
       <input id="newName" placeholder="e.g., My VMess Node" />
-      <label for="newPriority">Priority (0-999)</label>
+      <label for="newPriority">Priority for All (0-999, defaults to 0)</label>
       <input id="newPriority" type="number" min="0" max="999" value="0" />
       <hr />
 
-      <label for="newLink">Single Link</label>
-      <input id="newLink" placeholder="Enter vmess:// or vless:// link" />
-      <button onclick="add()">Add Record</button>
-
-      <hr />
-
-      <label for="bulk">Bulk Links (One Per Line)</label>
-      <textarea id="bulk" rows="6" placeholder="Paste multiple vmess:// or vless:// links, one per line"></textarea>
-      <button onclick="bulkAdd()">Bulk Add Records</button>
+      <label for="bulk">Links (One Per Line - Single or Bulk)</label>
+      <textarea id="bulk" rows="6" placeholder="Paste vmess:// or vless:// links, one per line (single: paste one line)"></textarea>
+      <button onclick="bulkAdd()">Add Links</button>
 
       <div id="msg"></div>
 
@@ -278,7 +272,7 @@
       </div>
       <table id="tbl">
         <thead>
-          <tr><th><input type="checkbox" id="headerCheckbox" onclick="toggleSelectAll()" /></th><th>ID</th><th>Priority</th><th>Name</th><th>Link</th><th>Actions</th></tr>
+          <tr><th><input type="checkbox" id="headerCheckbox" onclick="toggleSelectAll()" /></th><th>ID</th><th>Priority</th><th>Created</th><th>Name</th><th>Link</th><th>Actions</th></tr>
         </thead>
       </table>
 
@@ -377,23 +371,26 @@
           }
           msgEl.innerText="Failed to load nodes"; msgEl.className="error";return;
         }
-        const d = await r.json();
+        let d = await r.json();
+        // Sort by priority descending (higher first)
+        d = d.sort((a, b) => (b.priority || 0) - (a.priority || 0));
         currentData = d; // Update cache
         const tbl = document.getElementById('tbl');
-        tbl.innerHTML = '<tr><th><input type="checkbox" id="headerCheckbox" onclick="toggleSelectAll()" /></th><th>ID</th><th>Priority</th><th>Name</th><th>Link</th><th>Actions</th></tr>';
+        tbl.innerHTML = '<tr><th><input type="checkbox" id="headerCheckbox" onclick="toggleSelectAll()" /></th><th>ID</th><th>Priority</th><th>Created</th><th>Name</th><th>Link</th><th>Actions</th></tr>';
         d.forEach(n=>{
+          const createdDate = new Date(n.id).toLocaleString();
           tbl.innerHTML+=`
           <tr>
             <td><input type="checkbox" class="rowCheckbox" value="${n.id}" /></td>
             <td>${n.id}</td>
             <td contenteditable onblur="editPriority(${n.id},this.innerText)">${n.priority || 0}</td>
+            <td>${createdDate}</td>
             <td contenteditable onblur="edit(${n.id},this.innerText,null)">${n.name}</td>
             <td contenteditable onblur="edit(${n.id},null,this.innerText)">${n.link}</td>
             <td>
               <button class="action-btn edit-btn" onclick="openEditModal(${n.id})">Edit</button>
               <button class="action-btn up-btn" onclick="moveUp(${n.id})">↑</button>
               <button class="action-btn down-btn" onclick="moveDown(${n.id})">↓</button>
-              <button class="action-btn delete-btn" onclick="del(${n.id})">🗑️</button>
             </td>
           </tr>`;
         });
@@ -406,12 +403,13 @@
       }
 
       async function deleteSelected() {
+        if (!token) return;
         const checkboxes = document.querySelectorAll('.rowCheckbox:checked');
         if (checkboxes.length === 0) {
           showMsg('No records selected', 'error');
           return;
         }
-        if (!confirm(`Delete ${checkboxes.length} selected records?`)) return;
+        if (!confirm(`Delete ${checkboxes.length} record(s)?`)) return;
         let success = 0;
         for (let cb of checkboxes) {
           const id = parseFloat(cb.value);
@@ -420,26 +418,7 @@
         }
         currentData = [];
         loadNodes();
-        showMsg(`Deleted ${success} records`, 'success');
-      }
-
-      async function add(){
-        if (!token) return;
-        const msgEl = document.getElementById('msg');
-        msgEl.innerText = ""; msgEl.className = "";
-        const r = await fetch('/api/nodes?token='+token,{
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({name:newName.value,link:newLink.value,priority: parseInt(newPriority.value) || 0})
-        });
-        if(r.ok){
-          newName.value=""; newLink.value=""; newPriority.value = "0";
-          currentData = []; // Invalidate cache
-          loadNodes();
-          showMsg("Added successfully!", "success");
-        } else {
-          showMsg("Failed to add record", "error");
-        }
+        showMsg(`Deleted ${success} record(s)`, 'success');
       }
 
       async function bulkAdd(){
@@ -449,15 +428,17 @@
         const r = await fetch('/api/bulk?token='+token,{
           method:'POST',
           headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({name:newName.value,text:bulk.value})
+          body:JSON.stringify({name:newName.value,text:bulk.value, priority: parseInt(newPriority.value) || 0})
         });
         if(r.ok){
           bulk.value="";
+          newName.value = "";
+          newPriority.value = "0";
           currentData = []; // Invalidate cache
           loadNodes();
-          showMsg("Bulk added successfully!", "success");
+          showMsg("Links added successfully!", "success");
         } else {
-          showMsg("Failed to bulk add", "error");
+          showMsg("Failed to add links", "error");
         }
       }
 
@@ -492,18 +473,6 @@
           showMsg("Priority updated!", "success");
         } else {
           showMsg("Priority update failed", "error");
-        }
-      }
-
-      async function del(id){
-        if (!token) return;
-        const r = await fetch('/api/nodes/'+id+'?token='+token,{method:'DELETE'});
-        if(r.ok){
-          currentData = []; // Invalidate cache
-          loadNodes();
-          showMsg("Deleted successfully!", "success");
-        } else {
-          showMsg("Delete failed", "error");
         }
       }
 
