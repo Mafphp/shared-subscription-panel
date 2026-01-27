@@ -28,11 +28,34 @@
         font-size: 2em;
         font-weight: 600;
       }
-      label {
+      .input-row {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 20px;
+      }
+      .input-row label {
         display: block;
         margin-bottom: 5px;
         font-weight: 500;
         color: #94a3b8;
+      }
+      .input-row input {
+        flex: 1;
+        padding: 12px 16px;
+        border-radius: 8px;
+        border: 1px solid #334155;
+        background: #020617;
+        color: #e5e7eb;
+        transition: border-color 0.2s, box-shadow 0.2s;
+      }
+      .input-row input:focus {
+        outline: none;
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+      }
+      .input-row .priority-input {
+        flex: 0 0 120px;
+        max-width: 120px;
       }
       input, textarea {
         padding: 12px 16px;
@@ -241,6 +264,8 @@
       }
       @media (max-width: 768px) {
         .card { padding: 20px; }
+        .input-row { flex-direction: column; gap: 10px; }
+        .input-row .priority-input { max-width: none; }
         table { font-size: 0.9em; }
         td, th { padding: 8px 6px; }
       }
@@ -259,10 +284,16 @@
       <button onclick="logout()" style="float:right; background:#dc2626; width:auto; padding:10px;">Logout</button>
       <h2>Admin Panel</h2>
 
-      <label for="newName">Optional Name for New Records (applies to all lines)</label>
-      <input id="newName" placeholder="e.g., My VMess Node" />
-      <label for="newPriority">Priority for All (0-999, defaults to 0)</label>
-      <input id="newPriority" type="number" min="0" max="999" value="0" />
+      <div class="input-row">
+        <div>
+          <label for="newName">Optional Name for New Records (applies to all lines)</label>
+          <input id="newName" placeholder="e.g., My VMess Node" />
+        </div>
+        <div class="priority-input">
+          <label for="newPriority">Priority for All (0-999, defaults to 0)</label>
+          <input id="newPriority" type="number" min="0" max="999" value="0" />
+        </div>
+      </div>
       <hr />
 
       <label for="bulk">Links (One Per Line - Single or Bulk)</label>
@@ -273,11 +304,12 @@
 
       <hr />
       <div>
+        <label><input type="checkbox" id="selectAll" onclick="toggleSelectAll()" /> Select All</label>
         <button class="bulk-delete-btn" id="deleteBtn" onclick="deleteSelected()" title="No records selected">Delete Selected</button>
       </div>
       <table id="tbl">
         <thead>
-          <tr><th><input type="checkbox" id="headerCheckbox" onclick="toggleSelectAll()" /></th><th>ID</th><th>Priority</th><th>Created</th><th>Name</th><th>Link</th><th>Actions</th></tr>
+          <tr><th><input type="checkbox" id="headerCheckbox" onclick="toggleSelectAll()" /></th><th>ID</th><th>Priority</th><th>Name</th><th>Link</th><th>Created</th><th>Actions</th></tr>
         </thead>
       </table>
 
@@ -364,7 +396,7 @@
         d = d.sort((a, b) => (b.priority || 0) - (a.priority || 0));
         currentData = d; // Update cache
         const tbl = document.getElementById('tbl');
-        tbl.innerHTML = '<tr><th><input type="checkbox" id="headerCheckbox" onclick="toggleSelectAll()" /></th><th>ID</th><th>Priority</th><th>Created</th><th>Name</th><th>Link</th><th>Actions</th></tr>';
+        tbl.innerHTML = '<tr><th><input type="checkbox" id="headerCheckbox" onclick="toggleSelectAll()" /></th><th>ID</th><th>Priority</th><th>Name</th><th>Link</th><th>Created</th><th>Actions</th></tr>';
         d.forEach(n=>{
           const createdDate = new Date(n.id).toLocaleString();
           const rowId = `row-${n.id}`;
@@ -373,11 +405,12 @@
             <td><input type="checkbox" class="rowCheckbox" value="${n.id}" onchange="updateDeleteButton()" /></td>
             <td class="readonly">${n.id}</td>
             <td class="readonly editable-priority" data-original="${n.priority || 0}" contenteditable="false">${n.priority || 0}</td>
-            <td class="readonly">${createdDate}</td>
             <td class="readonly editable-name" data-original="${n.name}" contenteditable="false">${n.name}</td>
             <td class="readonly editable-link" data-original="${n.link}" contenteditable="false">${n.link}</td>
+            <td class="readonly">${createdDate}</td>
             <td>
               <button class="action-btn edit-btn" onclick="toggleEdit(${n.id})">Edit</button>
+              <button class="action-btn delete-btn" onclick="confirmDelete(${n.id})">Delete</button>
             </td>
           </tr>`;
         });
@@ -398,6 +431,18 @@
         const selected = document.querySelectorAll('.rowCheckbox:checked').length;
         deleteBtn.disabled = selected === 0;
         deleteBtn.title = selected === 0 ? 'No records selected' : `Delete ${selected} record(s)`;
+      }
+
+      async function confirmDelete(id) {
+        if (!confirm('Delete this record?')) return;
+        const r = await fetch('/api/nodes/' + id + '?token=' + token, {method:'DELETE'});
+        if(r.ok){
+          currentData = [];
+          loadNodes();
+          showMsg("Record deleted!", "success");
+        } else {
+          showMsg("Delete failed", "error");
+        }
       }
 
       async function deleteSelected() {
@@ -489,7 +534,7 @@
         const r = await fetch('/api/nodes/' + id + '?token=' + token, {
           method: 'PUT',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify(p)
+          body:JSON.stringify(p)
         });
         if (r.ok) {
           currentData = [];
