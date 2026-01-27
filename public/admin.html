@@ -1,0 +1,105 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Subscription Panel</title>
+    <style>
+      body{font-family:system-ui;background:#0f172a;color:#e5e7eb;padding:20px}
+      .card{background:#020617;padding:20px;border-radius:10px;max-width:1100px;margin:auto}
+      input,textarea,button{padding:10px;border-radius:6px;border:none;width:100%}
+      button{background:#2563eb;color:white;cursor:pointer}
+      table{width:100%;margin-top:20px;border-collapse:collapse}
+      th,td{border-bottom:1px solid #1e293b;padding:8px}
+      td[contenteditable]{background:#020617;outline:none;word-break:break-all}
+      .error{color:#f87171;margin-top:10px}
+      hr{border:1px solid #1e293b;margin:15px 0}
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h2>Campaign Manager</h2>
+
+      <input id="token" placeholder="Admin Token" />
+      <hr />
+
+      <input id="newName" placeholder="name (optional)" />
+      <hr />
+
+      <input id="newLink" placeholder="single link" />
+      <button onclick="add()">Add</button>
+
+      <hr />
+
+      <textarea id="bulk" rows="6" placeholder="Bulk nodes..."></textarea>
+      <button onclick="bulkAdd()">Bulk Add</button>
+
+      <div id="msg" class="error"></div>
+
+      <hr />
+      <table id="tbl"></table>
+
+      <br />
+      <button onclick="loadNodes()">Load Nodes</button>
+    </div>
+
+    <script>
+      async function loadNodes(){
+        msg.innerText="";
+        const r = await fetch('/api/nodes?token='+token.value);
+        if(!r.ok){msg.innerText="Auth failed";return;}
+        const d = await r.json();
+        tbl.innerHTML='<tr><th>ID</th><th>Name</th><th>Link</th><th></th></tr>';
+        d.forEach(n=>{
+          tbl.innerHTML+=`
+          <tr>
+            <td>${n.id}</td>
+            <td contenteditable onblur="edit(${n.id},this.innerText,null)">${n.name}</td>
+            <td contenteditable onblur="edit(${n.id},null,this.innerText)">${n.link}</td>
+            <td><button onclick="del(${n.id})">Delete</button></td>
+          </tr>`;
+        });
+      }
+
+      async function add(){
+        const r = await fetch('/api/nodes?token='+token.value,{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({name:newName.value,link:newLink.value})
+        });
+        if(r.ok){
+          newName.value="";
+          newLink.value="";
+          loadNodes();
+        }
+      }
+
+      async function bulkAdd(){
+        const r = await fetch('/api/bulk?token='+token.value,{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({name:newName.value,text:bulk.value})
+        });
+        if(r.ok){
+          bulk.value="";
+          loadNodes();
+        }
+      }
+
+      async function edit(id,name,link){
+        const p={};
+        if(name!==null)p.name=name;
+        if(link!==null)p.link=link;
+
+        await fetch('/api/nodes/'+id+'?token='+token.value,{
+          method:'PUT',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify(p)
+        });
+      }
+
+      async function del(id){
+        await fetch('/api/nodes/'+id+'?token='+token.value,{method:'DELETE'});
+        loadNodes();
+      }
+    </script>
+  </body>
+</html>
