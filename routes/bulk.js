@@ -24,7 +24,7 @@ router.post("/bulk", (req, res) => {
 
     let name = uniqueName(baseName, data);
     link = updatePsInLink(link, name);
-    data.push({ id: Date.now() + Math.random(), name, link });
+    data.push({ id: Date.now() + Math.random(), name, link, priority: 0 });
   });
 
   save(data);

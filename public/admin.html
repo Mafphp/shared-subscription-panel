@@ -1,78 +1,326 @@
 <!doctype html>
 <html>
   <head>
-    <title>Subscription Panel</title>
+    <title>Admin Panel - Node Manager</title>
     <style>
-      body{font-family:system-ui;background:#0f172a;color:#e5e7eb;padding:20px}
-      .card{background:#020617;padding:20px;border-radius:10px;max-width:1100px;margin:auto}
-      input,textarea,button{padding:10px;border-radius:6px;border:none;width:100%}
-      button{background:#2563eb;color:white;cursor:pointer}
-      table{width:100%;margin-top:20px;border-collapse:collapse}
-      th,td{border-bottom:1px solid #1e293b;padding:8px}
-      td[contenteditable]{background:#020617;outline:none;word-break:break-all}
-      .error{color:#f87171;margin-top:10px}
-      hr{border:1px solid #1e293b;margin:15px 0}
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        color: #e5e7eb;
+        padding: 20px;
+        margin: 0;
+        min-height: 100vh;
+      }
+      .card {
+        background: rgba(2, 6, 23, 0.95);
+        backdrop-filter: blur(10px);
+        padding: 30px;
+        border-radius: 16px;
+        max-width: 1200px;
+        margin: auto;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+        border: 1px solid rgba(30, 41, 59, 0.5);
+      }
+      h2 {
+        text-align: center;
+        margin-bottom: 30px;
+        color: #f1f5f9;
+        font-size: 2em;
+        font-weight: 600;
+      }
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 500;
+        color: #94a3b8;
+      }
+      input, textarea {
+        padding: 12px 16px;
+        border-radius: 8px;
+        border: 1px solid #334155;
+        background: #020617;
+        color: #e5e7eb;
+        width: 100%;
+        box-sizing: border-box;
+        transition: border-color 0.2s, box-shadow 0.2s;
+      }
+      input:focus, textarea:focus {
+        outline: none;
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+      }
+      button {
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: background 0.2s, transform 0.1s;
+        width: 100%;
+        margin-top: 10px;
+      }
+      button:hover {
+        background: linear-gradient(135deg, #1d4ed8, #1e40af);
+        transform: translateY(-1px);
+      }
+      button:active {
+        transform: translateY(0);
+      }
+      .action-btn {
+        width: auto;
+        padding: 6px 12px;
+        font-size: 0.9em;
+        margin: 2px;
+        background: #059669;
+      }
+      .action-btn:hover {
+        background: #047857;
+      }
+      .delete-btn {
+        background: #dc2626;
+      }
+      .delete-btn:hover {
+        background: #b91c1c;
+      }
+      .up-btn {
+        background: #eab308;
+        color: #000;
+      }
+      .up-btn:hover {
+        background: #ca8a04;
+      }
+      .down-btn {
+        background: #06b6d4;
+        color: #000;
+      }
+      .down-btn:hover {
+        background: #0891b2;
+      }
+      .edit-btn {
+        background: #8b5cf6;
+      }
+      .edit-btn:hover {
+        background: #7c3aed;
+      }
+      table {
+        width: 100%;
+        margin-top: 20px;
+        border-collapse: collapse;
+        background: rgba(2, 6, 23, 0.8);
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+      }
+      th {
+        background: #1e293b;
+        padding: 15px 12px;
+        text-align: left;
+        font-weight: 600;
+        color: #f1f5f9;
+        border-bottom: 2px solid #334155;
+      }
+      tr:nth-child(even) {
+        background: rgba(30, 41, 59, 0.3);
+      }
+      td {
+        padding: 12px;
+        border-bottom: 1px solid #334155;
+        word-break: break-all;
+        max-width: 300px;
+      }
+      td[contenteditable] {
+        background: rgba(37, 99, 235, 0.1);
+        cursor: text;
+        border-radius: 4px;
+        padding: 8px;
+        transition: background 0.2s;
+      }
+      td[contenteditable]:focus {
+        background: rgba(37, 99, 235, 0.2);
+        outline: 2px solid #2563eb;
+      }
+      .error, .success {
+        margin-top: 15px;
+        padding: 12px;
+        border-radius: 8px;
+        text-align: center;
+        font-weight: 500;
+      }
+      .error {
+        color: #f87171;
+        background: rgba(248, 113, 113, 0.1);
+        border: 1px solid #f87171;
+      }
+      .success {
+        color: #10b981;
+        background: rgba(16, 185, 129, 0.1);
+        border: 1px solid #10b981;
+      }
+      hr {
+        border: none;
+        height: 1px;
+        background: linear-gradient(to right, transparent, #334155, transparent);
+        margin: 25px 0;
+      }
+      #editModal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 1000;
+      }
+      .modal-content {
+        background: #020617;
+        margin: 10% auto;
+        padding: 20px;
+        border-radius: 10px;
+        max-width: 500px;
+        color: #e5e7eb;
+        border: 1px solid #334155;
+      }
+      .modal-content label {
+        display: block;
+        margin-top: 15px;
+        margin-bottom: 5px;
+        font-weight: 500;
+        color: #94a3b8;
+      }
+      .modal-content input, .modal-content textarea {
+        width: 100%;
+        padding: 10px;
+        border-radius: 5px;
+        border: 1px solid #334155;
+        background: #020617;
+        color: #e5e7eb;
+        box-sizing: border-box;
+      }
+      .modal-buttons {
+        text-align: right;
+        margin-top: 20px;
+      }
+      .modal-buttons button {
+        width: auto;
+        margin-left: 10px;
+        padding: 10px 20px;
+      }
+      .cancel-btn {
+        background: #6b7280;
+      }
+      .save-btn {
+        background: #10b981;
+      }
+      @media (max-width: 768px) {
+        .card { padding: 20px; }
+        table { font-size: 0.9em; }
+        td, th { padding: 8px 6px; }
+      }
     </style>
   </head>
   <body>
     <div class="card">
       <h2>Admin Panel</h2>
 
+      <label for="token">Admin Token</label>
       <input id="token" placeholder="Enter Admin Token" />
       <hr />
 
-      <input id="newName" placeholder="Optional name for new records" />
+      <label for="newName">Optional Name for New Records</label>
+      <input id="newName" placeholder="e.g., My VMess Node" />
+      <label for="newPriority">Priority (0-999)</label>
+      <input id="newPriority" type="number" min="0" max="999" value="0" />
       <hr />
 
+      <label for="newLink">Single Link</label>
       <input id="newLink" placeholder="Enter vmess:// or vless:// link" />
-      <button onclick="add()">Add</button>
+      <button onclick="add()">Add Record</button>
 
       <hr />
 
-      <textarea id="bulk" rows="6" placeholder="Paste multiple links, one per line"></textarea>
-      <button onclick="bulkAdd()">Bulk Add</button>
+      <label for="bulk">Bulk Links (One Per Line)</label>
+      <textarea id="bulk" rows="6" placeholder="Paste multiple vmess:// or vless:// links, one per line"></textarea>
+      <button onclick="bulkAdd()">Bulk Add Records</button>
 
-      <div id="msg" class="error"></div>
+      <div id="msg"></div>
 
       <hr />
-      <table id="tbl"></table>
+      <table id="tbl">
+        <thead>
+          <tr><th>ID</th><th>Priority</th><th>Name</th><th>Link</th><th>Actions</th></tr>
+        </thead>
+      </table>
 
       <br />
-      <button onclick="loadNodes()">Load Nodes</button>
+      <button onclick="loadNodes()">Load/Refresh Nodes</button>
+
+      <!-- Edit Modal -->
+      <div id="editModal" class="modal">
+        <div class="modal-content">
+          <h3>Edit Record</h3>
+          <label for="editName">Name:</label>
+          <input id="editName" type="text" />
+          <label for="editPriority">Priority:</label>
+          <input id="editPriority" type="number" min="0" max="999" />
+          <label for="editLink">Link:</label>
+          <textarea id="editLink" rows="4"></textarea>
+          <div class="modal-buttons">
+            <button class="cancel-btn" onclick="closeEditModal()">Cancel</button>
+            <button class="save-btn" onclick="saveEdit()">Save</button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <script>
+      let currentData = []; // Cache current nodes for reordering
       async function loadNodes(){
-        msg.innerText="";
+        msg.innerText = "";
+        msg.className = "";
         const r = await fetch('/api/nodes?token='+token.value);
         if(!r.ok){msg.innerText="Failed to load nodes"; msg.className="error";return;}
         const d = await r.json();
-        tbl.innerHTML='<tr><th>ID</th><th>Name</th><th>Link</th><th>Actions</th></tr>';
+        currentData = d; // Update cache
+        tbl.innerHTML = '<tr><th>ID</th><th>Priority</th><th>Name</th><th>Link</th><th>Actions</th></tr>';
         d.forEach(n=>{
           tbl.innerHTML+=`
           <tr>
             <td>${n.id}</td>
+            <td contenteditable onblur="editPriority(${n.id},this.innerText)">${n.priority || 0}</td>
             <td contenteditable onblur="edit(${n.id},this.innerText,null)">${n.name}</td>
             <td contenteditable onblur="edit(${n.id},null,this.innerText)">${n.link}</td>
-            <td><button onclick="if(confirm('Are you sure?')) del(${n.id})">Delete</button></td>
+            <td>
+              <button class="action-btn edit-btn" onclick="openEditModal(${n.id})">Edit</button>
+              <button class="action-btn up-btn" onclick="moveUp(${n.id})">↑</button>
+              <button class="action-btn down-btn" onclick="moveDown(${n.id})">↓</button>
+              <button class="action-btn delete-btn" onclick="if(confirm('Are you sure?')) del(${n.id})">🗑️</button>
+            </td>
           </tr>`;
         });
       }
 
       async function add(){
+        msg.innerText = ""; msg.className = "";
         const r = await fetch('/api/nodes?token='+token.value,{
           method:'POST',
           headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({name:newName.value,link:newLink.value})
+          body:JSON.stringify({name:newName.value,link:newLink.value,priority: parseInt(newPriority.value) || 0})
         });
         if(r.ok){
-          newName.value="";
-          newLink.value="";
+          newName.value=""; newLink.value=""; newPriority.value = "0";
+          currentData = []; // Invalidate cache
           loadNodes();
+          showMsg("Added successfully!", "success");
+        } else {
+          showMsg("Failed to add record", "error");
         }
       }
 
       async function bulkAdd(){
+        msg.innerText = ""; msg.className = "";
         const r = await fetch('/api/bulk?token='+token.value,{
           method:'POST',
           headers:{'Content-Type':'application/json'},
@@ -80,7 +328,11 @@
         });
         if(r.ok){
           bulk.value="";
+          currentData = []; // Invalidate cache
           loadNodes();
+          showMsg("Bulk added successfully!", "success");
+        } else {
+          showMsg("Failed to bulk add", "error");
         }
       }
 
@@ -88,17 +340,127 @@
         const p={};
         if(name!==null)p.name=name;
         if(link!==null)p.link=link;
-
-        await fetch('/api/nodes/'+id+'?token='+token.value,{
+        const r = await fetch('/api/nodes/'+id+'?token='+token.value,{
           method:'PUT',
           headers:{'Content-Type':'application/json'},
           body:JSON.stringify(p)
         });
+        if(r.ok){
+          currentData = []; // Invalidate cache
+          showMsg("Updated successfully!", "success");
+        } else {
+          showMsg("Update failed", "error");
+        }
+      }
+
+      async function editPriority(id, priority) {
+        const p = { priority: parseInt(priority) || 0 };
+        const r = await fetch('/api/nodes/'+id+'?token='+token.value,{
+          method:'PUT',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify(p)
+        });
+        if(r.ok){
+          currentData = []; // Invalidate cache
+          showMsg("Priority updated!", "success");
+        } else {
+          showMsg("Priority update failed", "error");
+        }
       }
 
       async function del(id){
-        await fetch('/api/nodes/'+id+'?token='+token.value,{method:'DELETE'});
-        loadNodes();
+        if(!confirm("Are you sure you want to delete this record?")) return;
+        const r = await fetch('/api/nodes/'+id+'?token='+token.value,{method:'DELETE'});
+        if(r.ok){
+          currentData = []; // Invalidate cache
+          loadNodes();
+          showMsg("Deleted successfully!", "success");
+        } else {
+          showMsg("Delete failed", "error");
+        }
+      }
+
+      async function moveUp(id) {
+        const idx = currentData.findIndex(x => x.id == id);
+        if (idx > 0) {
+          [currentData[idx-1], currentData[idx]] = [currentData[idx], currentData[idx-1]];
+          await saveReordered();
+          loadNodes();
+          showMsg("Moved up!", "success");
+        }
+      }
+      async function moveDown(id) {
+        const idx = currentData.findIndex(x => x.id == id);
+        if (idx < currentData.length - 1) {
+          [currentData[idx], currentData[idx+1]] = [currentData[idx+1], currentData[idx]];
+          await saveReordered();
+          loadNodes();
+          showMsg("Moved down!", "success");
+        }
+      }
+      async function saveReordered() {
+        await fetch('/api/nodes/reorder?token='+token.value, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({data: currentData})
+        });
+      }
+
+      function showMsg(text, className) {
+        msg.innerText = text;
+        msg.className = className;
+        setTimeout(() => { msg.innerText = ""; msg.className = ""; }, 2000);
+      }
+
+      let editingId = null;
+
+      function openEditModal(id) {
+        editingId = id;
+        const node = currentData.find(x => x.id == id);
+        if (!node) {
+          showMsg("Record not found", "error");
+          return;
+        }
+        document.getElementById('editName').value = node.name || '';
+        document.getElementById('editPriority').value = node.priority || 0;
+        document.getElementById('editLink').value = node.link || '';
+        document.getElementById('editModal').style.display = 'block';
+      }
+
+      function closeEditModal() {
+        editingId = null;
+        document.getElementById('editModal').style.display = 'none';
+      }
+
+      async function saveEdit() {
+        const name = document.getElementById('editName').value;
+        const priority = document.getElementById('editPriority').value;
+        const link = document.getElementById('editLink').value;
+        const p = {};
+        if (name) p.name = name;
+        if (priority !== '') p.priority = parseInt(priority) || 0;
+        if (link) p.link = link;
+        const r = await fetch('/api/nodes/' + editingId + '?token=' + token.value, {
+          method: 'PUT',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(p)
+        });
+        if (r.ok) {
+          currentData = [];
+          loadNodes();
+          closeEditModal();
+          showMsg("Record updated!", "success");
+        } else {
+          showMsg("Save failed", "error");
+        }
+      }
+
+      // Close modal on outside click
+      window.onclick = function(event) {
+        const modal = document.getElementById('editModal');
+        if (event.target == modal) {
+          closeEditModal();
+        }
       }
     </script>
   </body>

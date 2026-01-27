@@ -14,9 +14,10 @@ router.get("/nodes", (req, res) => {
 router.post("/nodes", (req, res) => {
   if (req.query.token !== ADMIN_TOKEN) return res.sendStatus(403);
 
-  let { link, name } = req.body;
+  let { link, name, priority } = req.body;
   link = (link || "").trim();
   name = (name || "").trim();
+  priority = parseInt(priority) || 0;
 
   if (!isValidLink(link)) return res.status(400).json({ error: "Invalid link" });
 
@@ -28,7 +29,7 @@ router.post("/nodes", (req, res) => {
 
   link = updatePsInLink(link, name);
 
-  data.push({ id: Date.now(), name, link });
+  data.push({ id: Date.now(), name, link, priority });
   save(data);
 
   res.json({ ok: true });
@@ -37,7 +38,7 @@ router.post("/nodes", (req, res) => {
 router.put("/nodes/:id", (req, res) => {
   if (req.query.token !== ADMIN_TOKEN) return res.sendStatus(403);
 
-  let { link, name } = req.body;
+  let { link, name, priority } = req.body;
 
   const data = load();
   const node = data.find(x => x.id == req.params.id);
@@ -52,8 +53,10 @@ router.put("/nodes/:id", (req, res) => {
   }
   updateLink = updatePsInLink(updateLink, updateName);
 
+  let updatePriority = priority !== undefined ? parseInt(priority) : (node.priority || 0);
   node.name = updateName;
   node.link = updateLink;
+  node.priority = updatePriority;
 
   save(data);
   res.json({ ok: true });
