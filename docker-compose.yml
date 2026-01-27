@@ -1,0 +1,10 @@
+services:
+  update-subscription-panel:
+    image: update-subscription-panel:latest
+    container_name: update-subscription-panel-container
+    expose:
+      - 3000
+    environment:
+      SUB_TOKEN: "100200300"
+      ADMIN_TOKEN: "ramz102030"
+      PORT: "3000"
