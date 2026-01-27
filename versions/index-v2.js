@@ -1,4 +1,3 @@
-// ---------- Load env ----------
 require("dotenv").config();
 const express = require("express");
 const fs = require("fs");
@@ -8,7 +7,6 @@ const app = express();
 const FILE = process.env.DATA_FILE || path.join(process.cwd(), "nodes.json");
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN;
 const SUB_TOKEN = process.env.SUB_TOKEN;
-const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
@@ -36,7 +34,10 @@ function isValidLink(link) {
 // ---------- SUB ----------
 app.get("/", (req, res) => {
   const token = req.query.token;
-  if (token !== SUB_TOKEN) return res.status(403).send("Forbidden");
+
+  if (token !== SUB_TOKEN) {
+    return res.status(403).send("Forbidden");
+  }
 
   const nodes = load().map(x => x.link);
   res.set("Content-Type", "text/plain");
@@ -53,8 +54,7 @@ app.post("/api/nodes", (req, res) => {
   if (req.query.token !== ADMIN_TOKEN) return res.sendStatus(403);
 
   const link = (req.body.link || "").trim();
-  if (!isValidLink(link))
-    return res.status(400).json({ error: "Invalid vmess/vless link" });
+  if (!isValidLink(link)) return res.status(400).json({ error: "Invalid vmess/vless link" });
 
   const data = load();
   if (data.find(x => x.link === link))
@@ -69,8 +69,7 @@ app.put("/api/nodes/:id", (req, res) => {
   if (req.query.token !== ADMIN_TOKEN) return res.sendStatus(403);
 
   const link = (req.body.link || "").trim();
-  if (!isValidLink(link))
-    return res.status(400).json({ error: "Invalid vmess/vless link" });
+  if (!isValidLink(link)) return res.status(400).json({ error: "Invalid vmess/vless link" });
 
   const data = load();
   const node = data.find(x => x.id == req.params.id);
@@ -91,30 +90,6 @@ app.delete("/api/nodes/:id", (req, res) => {
   res.json({ ok: true });
 });
 
-// ---------- Bulk add ----------
-app.post("/api/nodes/bulk", (req, res) => {
-  if (req.query.token !== ADMIN_TOKEN) return res.sendStatus(403);
-
-  const text = (req.body.text || "").trim();
-  if (!text) return res.status(400).json({ error: "Empty input" });
-
-  const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-  const data = load();
-  let added = 0, skipped = 0;
-
-  for (const link of lines) {
-    if (!isValidLink(link) || data.find(x => x.link === link)) {
-      skipped++;
-      continue;
-    }
-    data.push({ id: Date.now() + Math.floor(Math.random() * 1000), link });
-    added++;
-  }
-
-  save(data);
-  res.json({ added, skipped });
-});
-
 // ---------- UI ----------
 app.get("/admin", (req, res) => {
   res.send(`
@@ -123,44 +98,105 @@ app.get("/admin", (req, res) => {
 <head>
 <title>Subscription Panel</title>
 <style>
-body{font-family:system-ui;background:#0f172a;color:#e5e7eb;padding:20px}
-.card{background:#020617;padding:20px;border-radius:10px;max-width:1100px;margin:auto;box-shadow:0 0 20px #000}
-input,button,textarea{padding:10px;border-radius:6px;border:none}
-input,textarea{width:100%}
-button{background:#2563eb;color:white;cursor:pointer}
+body{
+  font-family:system-ui;
+  background:#0f172a;
+  color:#e5e7eb;
+  padding:20px;
+}
+
+.card{
+  background:#020617;
+  padding:20px;
+  border-radius:10px;
+  max-width:1100px;
+  margin:auto;
+  box-shadow:0 0 20px #000;
+}
+
+input,button{
+  padding:10px;
+  border-radius:6px;
+  border:none;
+}
+
+input{width:100%}
+
+button{
+  background:#2563eb;
+  color:white;
+  cursor:pointer;
+}
+
 button:hover{opacity:.8}
-.table-wrap{overflow-x:auto}
-table{width:100%;margin-top:20px;border-collapse:collapse;table-layout:fixed}
-th,td{border-bottom:1px solid #1e293b;padding:8px;vertical-align:top}
-td[contenteditable]{background:#020617;outline:none;word-break:break-all;white-space:pre-wrap}
-td{word-break:break-all;white-space:pre-wrap}
+
+.table-wrap{
+  overflow-x:auto;
+}
+
+table{
+  width:100%;
+  margin-top:20px;
+  border-collapse:collapse;
+  table-layout:fixed;
+}
+
+th,td{
+  border-bottom:1px solid #1e293b;
+  padding:8px;
+  vertical-align:top;
+}
+
+td[contenteditable]{
+  background:#020617;
+  outline:none;
+  word-break:break-all;
+  white-space:pre-wrap;
+}
+
+td{
+  word-break:break-all;
+  white-space:pre-wrap;
+}
+
+.error{
+  color:#f87171;
+  margin-top:10px;
+}
+
+/* Mobile */
+@media(max-width:700px){
+  th:nth-child(1), td:nth-child(1){
+    width:90px;
+    font-size:12px;
+  }
+  button{
+    padding:6px;
+    font-size:12px;
+  }
+}
+
 .error{color:#f87171;margin-top:10px}
-@media(max-width:700px){th:nth-child(1),td:nth-child(1){width:90px;font-size:12px}button{padding:6px;font-size:12px}}
 </style>
 </head>
 <body>
 
 <div class="card">
-<h2>Subscription Manager</h2>
+<h2>Campaign Manager</h2>
 
-<input id="token" placeholder="Token"><br><br>
+<input id="token" placeholder="Admin Token"><br><br>
 
-<h3>Add Single Node</h3>
 <div style="display:flex;gap:10px">
-<input id="newLink" placeholder="vmess:// or vless:// link">
+<input id="newLink" placeholder="link">
 <button onclick="add()">Add</button>
 </div>
-
-<h3>Add Bulk Nodes</h3>
-<textarea id="bulkLinks" placeholder="Paste multiple vmess/vless links here" rows="6"></textarea>
-<button onclick="addBulk()">Add Bulk</button>
 
 <div id="msg" class="error"></div>
 
 <div class="table-wrap">
-<table id="tbl">
-<tr><th style="width:90px">ID</th><th>Link</th><th style="width:80px"></th></tr>
-</table>
+  <table id="tbl">
+    <tr><th>ID</th><th>Link</th><th></th></tr>
+  </table>
 </div>
 
 <br>
@@ -175,7 +211,8 @@ async function loadNodes(){
   const d = await r.json();
   tbl.innerHTML='<tr><th style="width:90px">ID</th><th>Link</th><th style="width:80px"></th></tr>';
   d.forEach(n=>{
-    tbl.innerHTML+=\`<tr>
+    tbl.innerHTML+=\`
+    <tr>
       <td>\${n.id}</td>
       <td contenteditable onblur="edit(\${n.id},this.innerText)">\${n.link}</td>
       <td><button onclick="del(\${n.id})">Delete</button></td>
@@ -193,23 +230,6 @@ async function add(){
   const d = await r.json().catch(()=>({}));
   if(!r.ok){msg.innerText=d.error||"Error";return;}
   newLink.value="";
-  loadNodes();
-}
-
-async function addBulk(){
-  msg.innerText="";
-  const text = bulkLinks.value;
-  if(!text){ msg.innerText="Nothing to add"; return; }
-
-  const r = await fetch('/api/nodes/bulk?token='+token.value, {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ text })
-  });
-  const d = await r.json().catch(()=>({}));
-  if(!r.ok){msg.innerText=d.error||"Error"; return;}
-  msg.innerText="Added: "+d.added+", Skipped: "+d.skipped;
-  bulkLinks.value="";
   loadNodes();
 }
 
@@ -233,5 +253,4 @@ async function del(id){
 `);
 });
 
-// ---------- Start Server ----------
-app.listen(PORT, () => console.log("Running on port", PORT));
+app.listen(3000, () => console.log("Running on 3000"));
