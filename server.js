@@ -10,6 +10,14 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use("/api", require("./routes/nodes"));
 app.use("/api", require("./routes/bulk"));
 
+app.get("/admin", (req, res) => {
+  res.sendFile(path.join(__dirname, "public/admin.html"));
+});
+
+app.get("/admin.html", (req, res) => {
+  res.redirect(301, "/admin");
+});
+
 app.get("/", (req, res) => {
   if (req.query.token !== process.env.SUB_TOKEN) return res.sendStatus(403);
   const { load } = require("./services/store");
