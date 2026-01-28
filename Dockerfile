@@ -1,13 +1,13 @@
 # FROM hub.hamdocker.ir/alpine:3.21
 # CMD ["sh"]
 # Base image: Node 20 on Debian/Ubuntu
-FROM hub.hamdocker.ir/node:22
+FROM node:22-alpine
 
 # Set working directory
 WORKDIR /app
 
 
-RUN npm set registry https://repo.hmirror.ir/npm
+# RUN npm set registry https://repo.hmirror.ir/npm
 
 # # Copy package.json
 COPY package.json ./
