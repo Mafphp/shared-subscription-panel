@@ -18,9 +18,6 @@ router.post("/bulk", (req, res) => {
 
   if (!baseName) baseName = today();
   baseName = normalizeName(baseName);
-  if (data.find(x => x.name === baseName)) {
-    return res.status(400).json({ error: `Base name "${baseName}" already exists` });
-  }
 
   const lines = text.split(/\r?\n/).filter(line => line.trim());
   if (lines.length === 0) return res.json({ ok: true });
@@ -31,14 +28,6 @@ router.post("/bulk", (req, res) => {
     if (!isValidLink(link)) return;
 
     let name = baseName;
-    if (index > 0) {
-      name = `${baseName}-${index}`;
-    }
-    // Check if this name already exists
-    if (data.find(x => x.name === name)) {
-      console.log(`Skipping duplicate name: ${name}`);
-      return;
-    }
     link = updatePsInLink(link, name);
     data.push({ id: Date.now() + Math.random(), name, link, priority });
     added++;
