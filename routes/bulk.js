@@ -15,6 +15,7 @@ router.post("/bulk", (req, res) => {
   if (!text) return res.json({ ok: true });
 
   const data = load();
+    let maxId = data.length > 0 ? Math.max(...data.map(x => x.id || 0)) : 0;
 
   if (!baseName) baseName = today();
   baseName = normalizeName(baseName);
@@ -29,7 +30,7 @@ router.post("/bulk", (req, res) => {
 
     let name = baseName;
     link = updatePsInLink(link, name);
-    data.push({ id: Date.now() + Math.random(), name, link, priority });
+    data.push({ id: ++maxId, created: Date.now(), name, link, priority });
     added++;
   });
 

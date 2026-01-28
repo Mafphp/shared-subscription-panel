@@ -29,7 +29,8 @@ router.post("/nodes", (req, res) => {
 
   link = updatePsInLink(link, name);
 
-  data.push({ id: Date.now(), name, link, priority });
+  const maxId = data.length > 0 ? Math.max(...data.map(x => x.id || 0)) : 0;
+data.push({ id: maxId + 1, created: Date.now(), name, link, priority });
   save(data);
 
   res.json({ ok: true });

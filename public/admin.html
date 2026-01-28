@@ -450,7 +450,7 @@
         const tbl = document.getElementById('tbl');
         tbl.innerHTML = '<tr><th><input type="checkbox" id="headerCheckbox" onclick="toggleSelectAll()" /></th><th>ID</th><th>Priority</th><th>Name</th><th>Link</th><th>Created</th><th>Actions</th></tr>';
         d.forEach(n=>{
-          const createdDate = new Date(n.id).toLocaleString();
+          const createdDate = new Date(n.created).toLocaleString();
           const rowId = `row-${n.id}`;
           tbl.innerHTML+=`
           <tr id="${rowId}" class="row">
