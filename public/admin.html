@@ -558,13 +558,19 @@
           btn.textContent = 'Save';
           btn.className = 'action-btn save-btn-row';
           btn.onclick = () => saveRowEdit(id, row);
-          // Add cancel button
+          // Reorder buttons for edit mode: Save, Cancel, Delete
           const actionsTd = row.querySelector('td:last-child');
+          const saveBtn = btn; // Now Save
+          const deleteBtn = row.querySelector('.delete-btn');
           const cancelBtn = document.createElement('button');
           cancelBtn.textContent = 'Cancel';
           cancelBtn.className = 'action-btn cancel-btn-row';
           cancelBtn.onclick = () => cancelEdit(id, row);
+          // Clear and reorder
+          actionsTd.innerHTML = '';
+          actionsTd.appendChild(saveBtn);
           actionsTd.appendChild(cancelBtn);
+          actionsTd.appendChild(deleteBtn);
         } else {
           // Save mode - trigger save
           saveRowEdit(id, row);
