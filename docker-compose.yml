@@ -5,6 +5,6 @@ services:
     expose:
       - 3000
     environment:
-      SUB_TOKEN: "100200300"
-      ADMIN_TOKEN: "ramz102030"
-      PORT: "3000"
+      SUB_TOKEN: "${SUB_TOKEN}"
+      ADMIN_TOKEN: "${ADMIN_TOKEN}"
+      PORT: "${PORT}"
