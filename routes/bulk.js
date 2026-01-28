@@ -28,7 +28,7 @@ router.post("/bulk", (req, res) => {
     let link = line.trim();
     if (!isValidLink(link)) return;
 
-    let name = baseName;
+    let name = uniqueName(baseName, data);
     link = updatePsInLink(link, name);
     data.push({ id: ++maxId, created: Date.now(), name, link, priority });
     added++;
